@@ -1,0 +1,10 @@
+
+datasource:
+  maxConn: 200
+  maxOpen: 200
+  userName: root
+  password: xxx868336790
+  host: localhost
+  port: 3306
+  dbName: douyin
+  args: "charset=utf8mb4&parseTime=True&loc=Local"

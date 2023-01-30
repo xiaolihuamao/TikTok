@@ -15,7 +15,7 @@ import (
 
 const MysqlConfig = "root:xxx868336790@(localhost:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local"
 
-func cTestGEN(t *testing.T) {
+func TestGEN(t *testing.T) {
 	// 连接数据库
 	db, err := gorm.Open(mysql.Open(MysqlConfig))
 	if err != nil {

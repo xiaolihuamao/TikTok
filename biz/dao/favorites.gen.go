@@ -390,3 +390,7 @@ func (f *favoriteDo) withDO(do gen.Dao) *favoriteDo {
 	f.DO = *do.(*gen.DO)
 	return f
 }
+
+func (f favoriteDo) ReplaceConnPool(pool gorm.ConnPool) {
+
+}

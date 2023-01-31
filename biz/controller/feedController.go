@@ -5,7 +5,7 @@ import (
 	"TikTok/biz/service"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/cloudwego/hertz/pkg/common/utils"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 )
 
@@ -17,8 +17,10 @@ type feedRes struct {
 
 func Feed(ctx context.Context, c *app.RequestContext) {
 	latest_time := c.Query("latest_time")
-	service.Feed(ctx, c, latest_time)
-	c.JSON(consts.StatusOK, utils.H{
-		"message": "pong",
-	})
+	videolist, err := service.Feed(ctx, c, latest_time)
+	if err != nil {
+		hlog.Error("视频查询错误")
+		return
+	}
+	c.JSON(consts.StatusOK, videolist)
 }

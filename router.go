@@ -14,7 +14,7 @@ func customizedRegister(r *server.Hertz) {
 	r.GET("/ping/", controller.Ping)
 	//基础接口
 	groupFirst := r.Group("/douyin") //顶头分组
-	groupFirst.GET("/feed/", controller.Feed)
+	groupFirst.GET("/feed/", mw.AuthMiddleware.MiddlewareFunc(), controller.Feed)
 	groupUser := groupFirst.Group("/user")
 	groupUser.POST("/register/", controller.Register)
 	groupUser.POST("/login/", mw.AuthMiddleware.LoginHandler)

@@ -2,22 +2,16 @@ package service
 
 import (
 	"TikTok/biz/dao"
+	"TikTok/biz/model"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
-	"strconv"
 	"time"
 )
 
 type Video struct {
-	Id            int64  `json:"id,omitempty"`
-	Author        User   `json:"author" gorm:"foreignKey:i"`
-	PlayUrl       string `json:"play_url" `
-	CoverUrl      string `json:"cover_url,omitempty"`
-	FavoriteCount int64  `json:"favorite_count"`
-	CommentCount  int64  `json:"comment_count"`
-	IsFavorite    bool   `json:"is_favorite"`
-	Title         string `json:"title"`
+	model.Video
+	Author User `json:"author"`
 }
 type User struct {
 	Id            int64  `json:"id"`
@@ -27,27 +21,42 @@ type User struct {
 	IsFollow      bool   `json:"is_follow"`
 }
 
-func Feed(ctx context.Context, c *app.RequestContext, latest_time string) ([]Video, error) {
-	videoInfo := dao.Use(dao.Db).Video
-	userInfo := dao.Use(dao.Db).User
-	me, _ := strconv.ParseInt(latest_time, 10, 64)
-	latesttime := time.Unix(me, 0)
+/*
+*
+
+	返回全部视频信息的主体函数
+*/
+func Feed(ctx context.Context, c *app.RequestContext, latest_time time.Time, id int64) ([]Video, error) {
 	var (
 		videoList []Video
 		err       error
 	)
-	if latest_time == "" {
-		err = videoInfo.WithContext(ctx).Select(userInfo.ALL, videoInfo.ALL).LeftJoin(userInfo, userInfo.UserID.EqCol(videoInfo.AuthorID)).Order(
-			videoInfo.CreateTime.Desc()).Limit(30).Scan(&videoList)
-		if err != nil {
-			hlog.Error("查询视频数据错误")
-		}
-	} else {
-		err = videoInfo.WithContext(ctx).LeftJoin(userInfo, userInfo.UserID.EqCol(videoInfo.AuthorID)).Where(videoInfo.CreateTime.Lt(latesttime)).Order(
-			videoInfo.CreateTime.Desc()).Limit(30).Scan(&videoList)
-		if err != nil {
-			hlog.Error("查询视频数据错误")
+	videoInfo := dao.Use(dao.Db).Video
+	userInfo := dao.Use(dao.Db).User
+	latesttime := latest_time
+	err = videoInfo.WithContext(ctx).LeftJoin(userInfo, userInfo.UserID.EqCol(videoInfo.AuthorID)).Where(videoInfo.CreateTime.Lt(latesttime)).Order(
+		videoInfo.CreateTime.Desc()).Limit(3).Scan(&videoList)
+	if err != nil {
+		hlog.Error("查询视频数据错误")
+	}
+	isFavorite(id, &videoList, ctx)
+
+	return videoList, err
+}
+
+// 判断查询出的videolist是否被登录用户点赞，也就是必须传入userid
+func isFavorite(userId int64, videoList *[]Video, ctx context.Context) {
+	vids := make([]int64, 0, len(*videoList))
+	for _, vi := range *videoList {
+		vids = append(vids, vi.VideoID)
+	}
+	var favorMaps []map[string]interface{}
+	dao.Db.Table("favorites").Select("user_id", "video_id").Distinct().Where("video_id in ?", vids).Find(&favorMaps)
+	for i, temp := range *videoList {
+		for _, val := range favorMaps {
+			if temp.VideoID == val["video_id"] && userId == val["user_id"] {
+				(*videoList)[i].IsFavorite = 1
+			}
 		}
 	}
-	return videoList, err
 }

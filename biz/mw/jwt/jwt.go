@@ -2,9 +2,9 @@ package mw
 
 //@author fuxingyuan
 import (
-	"TikTok/biz/controller"
 	"TikTok/biz/dao"
 	"context"
+	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/hertz-contrib/jwt"
 	"log"
@@ -16,9 +16,10 @@ type login struct {
 	Password string `query:"password,required" json:"password,required"`
 }
 type loginRes struct {
-	controller.Response
-	Token   interface{} `form:"token" json:"token"`
-	User_id interface{} `form:"user_id" json:"user_Id"`
+	StatusCode int32       `json:"status_code"`
+	StatusMsg  string      `json:"status_msg,omitempty"`
+	Token      interface{} `form:"token" json:"token"`
+	User_id    interface{} `form:"user_id" json:"user_Id"`
 }
 
 var identityKey = "id"
@@ -27,6 +28,7 @@ type UserDemo struct {
 	UserName  string
 	FirstName string
 	LastName  string
+	Uid       int64
 }
 
 var AuthMiddleware *jwt.HertzJWTMiddleware
@@ -37,21 +39,28 @@ func Initjwt() {
 	AuthMiddleware, errjwt = jwt.New(&jwt.HertzJWTMiddleware{
 		Realm:       "test zone",
 		Key:         []byte("secret key"),
-		Timeout:     time.Minute,
+		Timeout:     time.Hour,
 		MaxRefresh:  time.Hour,
 		IdentityKey: identityKey,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if v, ok := data.(*UserDemo); ok {
 				return jwt.MapClaims{
-					identityKey: v.UserName,
+					identityKey: v.Uid,
 				}
 			}
 			return jwt.MapClaims{}
 		},
 		IdentityHandler: func(ctx context.Context, c *app.RequestContext) interface{} {
 			claims := jwt.ExtractClaims(ctx, c)
+			uidFloat := claims[identityKey].(float64)
+			fmt.Println(uidFloat)
+			uid := int(uidFloat)
+			uid64 := int64(uid)
 			return &UserDemo{
-				UserName: claims[identityKey].(string),
+				Uid:       uid64,
+				UserName:  "",
+				FirstName: identityKey,
+				LastName:  identityKey,
 			}
 		},
 		Authenticator: func(ctx context.Context, c *app.RequestContext) (interface{}, error) {
@@ -66,32 +75,28 @@ func Initjwt() {
 			if err == nil && validUser != nil {
 				c.Set("id", validUser.UserID)
 				return &UserDemo{
-					UserName:  userID,
-					LastName:  "Hertz",
-					FirstName: "CloudWeGo",
+					Uid: validUser.UserID,
 				}, nil
 			}
 			return nil, jwt.ErrFailedAuthentication
 		},
 		Unauthorized: func(ctx context.Context, c *app.RequestContext, code int, message string) {
 			c.JSON(code, loginRes{
-				User_id: nil,
-				Token:   nil,
-				Response: controller.Response{
-					StatusCode: -1,
-					StatusMsg:  message,
-				}})
+				User_id:    nil,
+				Token:      nil,
+				StatusCode: -1,
+				StatusMsg:  message,
+			})
 		},
 		TokenLookup: "query:token,form:token,param:token",
 		LoginResponse: func(ctx context.Context, c *app.RequestContext, code int, message string, time time.Time) {
 			userid, _ := c.Get("id")
 			c.JSON(code, loginRes{
-				User_id: userid,
-				Token:   message,
-				Response: controller.Response{
-					StatusCode: 0,
-					StatusMsg:  "success login!",
-				}})
+				User_id:    userid,
+				Token:      message,
+				StatusCode: 0,
+				StatusMsg:  "success login!",
+			})
 		},
 	})
 	if errjwt != nil {

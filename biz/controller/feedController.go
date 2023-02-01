@@ -31,7 +31,7 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 	var uid int64
 	if !exists {
 		uid = -1
-		hlog.Info("未登录用户")
+		hlog.Info("未登录")
 	}
 	userDemo := unknown.(*mw.UserDemo)
 	uid = userDemo.Uid

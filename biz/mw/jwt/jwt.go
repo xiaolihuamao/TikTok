@@ -19,7 +19,7 @@ type loginRes struct {
 	StatusCode int32       `json:"status_code"`
 	StatusMsg  string      `json:"status_msg,omitempty"`
 	Token      interface{} `form:"token" json:"token"`
-	User_id    interface{} `form:"user_id" json:"user_Id"`
+	User_id    int         `form:"user_id" json:"user_Id"`
 }
 
 var identityKey = "id"
@@ -71,7 +71,7 @@ func Initjwt() {
 			userID := loginVals.Username
 			password := loginVals.Password
 			user := dao.Use(dao.Db).User
-			validUser, err := user.WithContext(ctx).Where(user.Username.Eq(userID), user.Password.Eq(password)).First()
+			validUser, err := user.WithContext(ctx).Select(user.UserID).Where(user.Username.Eq(userID), user.Password.Eq(password)).First()
 			if err == nil && validUser != nil {
 				c.Set("id", validUser.UserID)
 				return &UserDemo{
@@ -82,7 +82,7 @@ func Initjwt() {
 		},
 		Unauthorized: func(ctx context.Context, c *app.RequestContext, code int, message string) {
 			c.JSON(code, loginRes{
-				User_id:    nil,
+				User_id:    -1,
 				Token:      nil,
 				StatusCode: -1,
 				StatusMsg:  message,
@@ -90,9 +90,9 @@ func Initjwt() {
 		},
 		TokenLookup: "query:token,form:token,param:token",
 		LoginResponse: func(ctx context.Context, c *app.RequestContext, code int, message string, time time.Time) {
-			userid, _ := c.Get("id")
+			userid := c.GetInt64("id")
 			c.JSON(code, loginRes{
-				User_id:    userid,
+				User_id:    int(userid),
 				Token:      message,
 				StatusCode: 0,
 				StatusMsg:  "success login!",

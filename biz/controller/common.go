@@ -20,7 +20,7 @@ type Video struct {
 	Create_time   time.Time `json:"create_time"`
 }
 
-type Comment struct {
+type CommentInfo struct {
 	Id         int64  `json:"id,omitempty"`
 	User       User   `json:"user"`
 	Content    string `json:"content"`

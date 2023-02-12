@@ -20,8 +20,8 @@ func customizedRegister(r *server.Hertz) {
 	groupUser.POST("/login/", mw.AuthMiddleware.LoginHandler)
 	groupUser.GET("/", controller.UserInfo)
 	groupPublish := groupFirst.Group("/publish")
-	groupPublish.POST("/action/", controller.Publish)
-	groupPublish.GET("/list/", controller.PublishList)
+	groupPublish.POST("/action/", mw.AuthMiddleware.MiddlewareFunc(), controller.Publish)
+	groupPublish.GET("/list/", mw.AuthMiddleware.MiddlewareFunc(), controller.PublishList)
 	//互动接口
 	groupFavor := groupFirst.Group("/favorite")
 	groupFavor.POST("/action/", controller.FavoriteAction)
@@ -29,4 +29,5 @@ func customizedRegister(r *server.Hertz) {
 	groupComm := groupFirst.Group("/comment")
 	groupComm.POST("/action/", controller.CommentAction)
 	groupComm.GET("/list/", controller.CommentList)
+	r.Static("/upload", "./file")
 }

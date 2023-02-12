@@ -4,13 +4,17 @@
 package main
 
 import (
+	"TikTok/biz/controller"
+	"TikTok/biz/dao"
 	mw "TikTok/biz/mw/jwt"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
 func main() {
-	h := server.Default(server.WithHostPorts("localhost:8081"), server.WithMaxRequestBodySize(1024*1024*1024))
+	h := server.Default(server.WithHostPorts("192.168.137.1:8081"), server.WithMaxRequestBodySize(1024*1024*1024))
 	mw.Initjwt()
+	dao.Init()
 	register(h)
+	controller.TimeTaskExec()
 	h.Spin()
 }

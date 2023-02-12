@@ -21,7 +21,7 @@ Next_time:下一次的时间戳
 */
 type feedRes struct {
 	Response
-	Video_list []Video     `json:"video_List,omitempty"`
+	Video_list []Video     `json:"video_list,omitempty"`
 	Next_time  interface{} `json:"next_time,omitempty"`
 }
 
@@ -38,6 +38,7 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 		claims, err := mw.AuthMiddleware.GetClaimsFromJWT(ctx, c) //解析token,取出claims map
 		if err != nil {
 			hlog.Error("token解析错误，请使用正确的token")
+			uid = float64(-1)
 		}
 		//取出登录后返回的token中保存的uid---(interface{}/float64)
 		uid = claims["id"]
@@ -103,7 +104,7 @@ func copyVideo(v1 *[]service.Video, v2 *[]Video) {
 			Name:          temp.Username,
 			FollowCount:   temp.FollowCount,
 			FollowerCount: temp.FollowerCount,
-			IsFollow:      true,
+			IsFollow:      temp.Is_follow,
 		}
 		var isFavorite bool
 		if temp.IsFavorite != 0 {

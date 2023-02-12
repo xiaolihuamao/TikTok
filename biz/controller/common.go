@@ -13,10 +13,10 @@ type Video struct {
 	Author        User      `json:"author"`
 	PlayUrl       string    `json:"play_url" `
 	CoverUrl      string    `json:"cover_url"`
-	FavoriteCount int64     `json:"favorite_count"`
+	FavoriteCount int64     `json:"favorite_count"` //0
 	CommentCount  int64     `json:"comment_count"`
 	IsFavorite    bool      `json:"is_favorite"`
-	Title         string    `json:"title,omitempty"`
+	Title         string    `json:"title,omitempty"` //""
 	Create_time   time.Time `json:"create_time"`
 }
 

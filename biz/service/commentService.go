@@ -2,7 +2,7 @@ package service
 
 //author:zhangshuo
 import (
-	"TikTok/biz/controller"
+	//	"TikTok/biz/controller"
 	"TikTok/biz/dao"
 	"TikTok/biz/model"
 	"log"

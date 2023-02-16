@@ -1,12 +1,14 @@
 package service
 
-//author :fuxingyuan
 import (
 	"TikTok/biz/dao"
 	"TikTok/biz/model"
+	redisUtil "TikTok/biz/mw/redis"
 	"context"
+	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -16,8 +18,11 @@ service封装的videolist，将model层的Vedio,User取出来。
 */
 type Video struct {
 	model.Video
-	model.User
-	Is_follow bool `json:"is_follow"`
+	User
+}
+type User struct {
+	model.User `json:"user"`
+	Is_follow  bool `json:"is_follow"`
 }
 
 /*
@@ -44,21 +49,33 @@ func Feed(ctx context.Context, c *app.RequestContext, latest_time time.Time, id 
 	}
 	//登录用户执行此步操作，判断是否isFavorite
 	if id >= 0 {
-		creatVideoList(id, &videoList, ctx)
+		createVideo(id, &videoList, ctx)
 	}
 	return videoList, err
 }
 
-func creatVideoList(id int64, videoList *[]Video, ctx context.Context) {
+func createVideo(id int64, videoList *[]Video, ctx context.Context) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 	//定义判断是否点过赞的函数
 	var isFavorite func(userId int64, videoList *[]Video, ctx context.Context)
 	isFavorite = func(userId int64, videoList *[]Video, ctx context.Context) {
 		vids := make([]int64, 0, len(*videoList))
-		for _, vi := range *videoList {
-			vids = append(vids, vi.VideoID)
+		for i, vi := range *videoList {
+			//查询redis状态码
+			favorKey := fmt.Sprintf("like%d::%d", vi.VideoID, userId)
+			exist, err := redisUtil.Rdb.Exists(favorKey).Result()
+			if err == nil && exist == 1 {
+				favorCode, _ := redisUtil.Rdb.Get(favorKey).Result()
+				favorCodeInt, _ := strconv.ParseInt(favorCode, 0, 64)
+				//1代表已经点赞，0代表没有
+				(*videoList)[i].IsFavorite = favorCodeInt
+			}
+			if exist == 0 {
+				vids = append(vids, vi.VideoID)
+			}
 		} //将所有列表中的videoID取出作为集合
+
 		var favorMaps []map[string]interface{}
 		//在favorite表中查询所有user_id video_id map
 		dao.Db.Table("favorites").Select("user_id", "video_id").Distinct().Where("video_id in ?", vids).Find(&favorMaps)
@@ -72,15 +89,13 @@ func creatVideoList(id int64, videoList *[]Video, ctx context.Context) {
 		}
 		wg.Done()
 	}
-	//定义测试函数，后期可改造为从缓存取出点赞数
+	//从缓存取出点赞数
 	var addFavorNumFromCache func(userId int64, videoList *[]Video, ctx context.Context)
 	addFavorNumFromCache = func(userId int64, videoList *[]Video, ctx context.Context) {
-		for i, temp := range *videoList {
-			if temp.VideoID%2 == 0 {
-				(*videoList)[i].FavoriteCount = 100
-			} else {
-				(*videoList)[i].FavoriteCount = 1000
-			}
+		for i, video := range *videoList {
+			countKey := fmt.Sprintf("videoLike_count_%d", video.VideoID)
+			cacheCount, _ := redisUtil.Rdb.Get(countKey).Int64()
+			(*videoList)[i].FavoriteCount += cacheCount
 		}
 		wg.Done()
 	}

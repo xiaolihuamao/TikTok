@@ -3,7 +3,7 @@ datasource:
   maxConn: 200
   maxOpen: 200
   userName: root
-  password: xxx868336790
+  password: nawjwdsr1216
   host: localhost
   port: 3306
   dbName: douyin

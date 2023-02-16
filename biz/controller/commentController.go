@@ -2,7 +2,7 @@ package controller
 
 //@author:zhangshuo
 import (
-	"TikTok/biz/model"
+	"TikTok/biz/dao"
 	"TikTok/biz/service"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
@@ -15,17 +15,17 @@ import (
 // CommentActionResponse
 // 进行评论操作的返回结构体
 type CommentActionResponse struct {
-	StatusCode int32       `json:"status_code"`
-	StatusMsg  string      `json:"status_msg,omitempty"`
-	Comment    CommentInfo `json:"comment"`
+	StatusCode int32               `json:"status_code"`
+	StatusMsg  string              `json:"status_msg,omitempty"`
+	Comment    service.CommentInfo `json:"comment"`
 }
 
 // CommentListResponse
 // 获取评论列表的返回结构体
 type CommentListResponse struct {
-	StatusCode  int32         `json:"status_code"`
-	StatusMsg   string        `json:"status_msg,omitempty"`
-	CommentList []CommentInfo `json:"comment_list,omitempty"`
+	StatusCode  int32                 `json:"status_code"`
+	StatusMsg   string                `json:"status_msg,omitempty"`
+	CommentList []service.CommentInfo `json:"comment_list,omitempty"`
 }
 
 // CommentAction
@@ -77,13 +77,12 @@ func CommentAction(ctx context.Context, c *app.RequestContext) {
 	if actionType == 1 { //actionType为1，则进行发表评论操作
 		content := c.Query("comment_text")
 		//发表评论数据准备
-		var sendComment model.Comment
-		sendComment.UserID = userId
-		sendComment.VideoID = videoId
-		sendComment.Content = content
+		var sendComment dao.CommentData
+		sendComment.UserId = userId
+		sendComment.VideoId = videoId
+		sendComment.CommentText = content
 		timeNow := time.Now()
-		// 格式有问题，暂置
-		sendComment.CreateDate = timeNow.String()
+		sendComment.CreateDate = timeNow
 		//发表评论
 		commentInfo, err := service.Send(sendComment)
 		//发表评论失败
@@ -168,7 +167,7 @@ func CommentList(ctx context.Context, c *app.RequestContext) {
 	}
 	log.Printf("videoId:%v", videoId)
 
-	//调用service层评论函数
+	//调用service层列表获取函数
 	commentList, err := service.GetList(videoId, userId)
 	if err != nil { //获取评论列表失败
 		c.JSON(http.StatusOK, CommentListResponse{

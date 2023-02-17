@@ -18,9 +18,9 @@ service封装的videolist，将model层的Vedio,User取出来。
 */
 type Video struct {
 	model.Video
-	User
+	user
 }
-type User struct {
+type user struct {
 	model.User `json:"user"`
 	Is_follow  bool `json:"is_follow"`
 }

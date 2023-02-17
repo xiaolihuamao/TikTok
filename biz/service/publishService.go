@@ -19,19 +19,6 @@ import (
 	"time"
 )
 
-//type PublishService struct {
-//}
-
-type Video1 struct {
-	model.Video
-	User
-}
-
-type User struct {
-	model.User `json:"user"`
-	Is_follow  bool `json:"is_follow"`
-}
-
 func Publish(uid int64, file *multipart.FileHeader, c *app.RequestContext, title string, ctx context.Context) error {
 	var err error
 	uuid := uuid.NewV1()
@@ -97,27 +84,24 @@ func Publish(uid int64, file *multipart.FileHeader, c *app.RequestContext, title
 //}
 
 func PublishList(userId int64, ctx context.Context) []Video {
-
 	userInfo, err := mysql.GetUserById(userId)
+
 	if err != nil {
 		userInfo = new(model.User)
 	}
-
 	videoInfo, err := mysql.FindByAuthor(userId)
 	var videoList = make([]Video, 0, len(videoInfo))
 	for _, temp := range videoInfo {
 		video := Video{
-			Video:     *temp,
-			User:      *userInfo,
-			Is_follow: true,
-			//User: User{
-			//	User:      *userInfo,
-			//	Is_follow: true,
-			//}
+			Video: *temp,
+			user: user{
+				User:      *userInfo,
+				Is_follow: true,
+			},
 		}
 		videoList = append(videoList, video)
 	}
-	creatVideoList(userId, &videoList, ctx)
+	createVideo(userId, &videoList, ctx)
 	return videoList
 }
 

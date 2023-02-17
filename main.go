@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	h := server.Default(server.WithHostPorts("192.168.1.5:8081"), server.WithMaxRequestBodySize(1024*1024*1024))
+	h := server.Default(server.WithHostPorts("192.168.137.1:8081"), server.WithMaxRequestBodySize(1024*1024*1024))
 	mw.Initjwt()
 	register(h)
 	h.Spin()

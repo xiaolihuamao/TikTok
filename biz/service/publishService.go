@@ -23,7 +23,7 @@ func Publish(uid int64, file *multipart.FileHeader, c *app.RequestContext, title
 	var err error
 	uuid := uuid.NewV1()
 	//拼接url前缀，测试时需要修改这个
-	urlPrefix := "http://192.168.1.5:8081/upload/"
+	urlPrefix := "http://192.168.137.1:8081/upload/"
 	//拼接url,这个是存进数据库的
 
 	url := fmt.Sprintf("%s%v.mp4", urlPrefix, uuid)
@@ -94,7 +94,7 @@ func PublishList(userId int64, ctx context.Context) []Video {
 	for _, temp := range videoInfo {
 		video := Video{
 			Video: *temp,
-			user: user{
+			User: User{
 				User:      *userInfo,
 				Is_follow: true,
 			},

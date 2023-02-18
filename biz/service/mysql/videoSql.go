@@ -12,6 +12,7 @@ import (
 func InsertVideo(video model.Video) error {
 	v := dao.Use(dao.Db).Video
 	err := v.Create(&video)
+
 	fmt.Println(v.VideoID)
 	return err
 }

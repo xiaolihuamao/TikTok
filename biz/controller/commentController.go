@@ -2,188 +2,153 @@ package controller
 
 //@author:zhangshuo
 import (
-	"TikTok/biz/dao"
+	"TikTok/biz/model"
+	mw "TikTok/biz/mw/jwt"
 	"TikTok/biz/service"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
-	"log"
-	"net/http"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"strconv"
-	"time"
 )
 
-// CommentActionResponse
-// 进行评论操作的返回结构体
-type CommentActionResponse struct {
-	StatusCode int32               `json:"status_code"`
-	StatusMsg  string              `json:"status_msg,omitempty"`
-	Comment    service.CommentInfo `json:"comment"`
+type CommentRes struct {
+	Response
+	service.Comment
+}
+type CommentListRes struct {
+	Response
+	CommentList []service.Comment `json:"comment_list"`
 }
 
-// CommentListResponse
-// 获取评论列表的返回结构体
-type CommentListResponse struct {
-	StatusCode  int32                 `json:"status_code"`
-	StatusMsg   string                `json:"status_msg,omitempty"`
-	CommentList []service.CommentInfo `json:"comment_list,omitempty"`
-}
-
-// CommentAction
-// 评论操作函数
+// /douyin/comment/action/ post
+// query ?name=value&name=value
 func CommentAction(ctx context.Context, c *app.RequestContext) {
-	log.Printf("the CommentAction function is running") //提示函数正在运行
-
-	//获取userId
-	userid := c.Query("user_id")
-	userId, err := strconv.ParseInt(userid, 10, 64)
-	//错误处理
+	token := c.Query("token")
+	video_id := c.Query("video_id")
+	action_type := c.Query("action_type")
+	if action_type == "" || token == "" || video_id == "" {
+		c.JSON(consts.StatusNotFound, CommentRes{
+			Response: Response{StatusCode: -1, StatusMsg: "参数不足"},
+			Comment:  service.Comment{},
+		})
+		return
+	}
+	//==========================
+	var uid interface{}                                       //接收token解析出的uid
+	claims, err := mw.AuthMiddleware.GetClaimsFromJWT(ctx, c) //解析token,取出claims map
 	if err != nil {
-		c.JSON(http.StatusOK, CommentActionResponse{
-			StatusCode: -1,
-			StatusMsg:  "comment userId json invalid",
+		hlog.Error("token解析错误，请使用正确的token")
+	}
+	//取出登录后返回的token中保存的uid---(interface{}/float64)
+	uid = claims["id"]
+	if uid == nil {
+		c.JSON(consts.StatusBadRequest, CommentRes{
+			Response: Response{
+				StatusCode: -1,
+				StatusMsg:  "error token",
+			},
+			Comment: service.Comment{},
 		})
-		log.Println("CommentController-Comment_Action: return comment userId json invalid") //函数返回userId无效
 		return
 	}
-	log.Printf("userId:%v", userId)
+	uidf := uid.(float64)
+	uidInt := int64(uidf)
+	//一切参数就绪，调用service方法
+	videoid, _ := strconv.Atoi(video_id)
+	//增加评论
+	if action_type == "1" {
+		comment_text := c.Query("comment_text")
+		if comment_text == "" {
+			hlog.Error("评论内容为空")
+			c.JSON(consts.StatusNotFound, CommentRes{
+				Response: Response{StatusCode: -1, StatusMsg: "评论为空"},
+				Comment:  service.Comment{},
+			})
+			return
+		}
 
-	//获取videoId
-	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
-	//错误处理
-	if err != nil {
-		c.JSON(http.StatusOK, CommentActionResponse{
-			StatusCode: -1,
-			StatusMsg:  "comment userId json invalid",
-		})
-		log.Println("CommentController-Comment_Action: return comment videoId json invalid")
-		return
-	}
-	log.Printf("videoId:%v", videoId)
-
-	//获取操作类型
-	actionType, err := strconv.ParseInt(c.Query("action_type"), 10, 32)
-	//错误处理
-	if err != nil || actionType < 1 || actionType > 2 {
-		c.JSON(http.StatusOK, CommentActionResponse{
-			StatusCode: -1,
-			StatusMsg:  "comment actionType json invalid",
-		})
-		log.Println("CommentController-Comment_Action: return actionType json invalid") //评论类型数据无效
-		return
-	}
-	log.Printf("actionType:%v", actionType)
-
-	//调用service层评论函数，完成发送或删除评论
-	if actionType == 1 { //actionType为1，则进行发表评论操作
-		content := c.Query("comment_text")
-		//发表评论数据准备
-		var sendComment dao.CommentData
-		sendComment.UserId = userId
-		sendComment.VideoId = videoId
-		sendComment.CommentText = content
-		timeNow := time.Now()
-		sendComment.CreateDate = timeNow
-		//发表评论
-		commentInfo, err := service.Send(sendComment)
-		//发表评论失败
+		err := service.AddComment(int64(videoid), comment_text, uidInt)
 		if err != nil {
-			c.JSON(http.StatusOK, CommentActionResponse{
-				StatusCode: -1,
-				StatusMsg:  "send comment failed",
+			c.JSON(consts.StatusInternalServerError, CommentRes{
+				Response: Response{
+					StatusCode: -1,
+					StatusMsg:  "评论失败",
+				},
+				Comment: service.Comment{},
 			})
-			log.Println("CommentController-Comment_Action: return send comment failed") //发表失败
 			return
 		}
-		//发表评论成功:
-		c.JSON(http.StatusOK, CommentActionResponse{
-			StatusCode: 0,
-			StatusMsg:  "send comment success",
-			Comment:    commentInfo,
+		c.JSON(consts.StatusOK, CommentRes{
+			Response: Response{
+				StatusCode: 0,
+				StatusMsg:  "success",
+			},
+			Comment: service.Comment{
+				Comment: model.Comment{
+					Content: comment_text,
+				},
+			},
 		})
-		log.Println("CommentController-Comment_Action: return Send success") //发表评论成功，返回正确信息
-		return
-	} else {
-		//actionType为2，则进行删除评论操作
-		//获取要删除的评论的id
-		commentId, err := strconv.ParseInt(c.Query("comment_id"), 10, 64)
+		//删除评论
+	} else if action_type == "2" {
+		comment_id := c.Query("comment_id")
+		if comment_id == "" {
+			c.JSON(consts.StatusBadRequest, CommentRes{
+				Response: Response{
+					StatusCode: -1,
+					StatusMsg:  "请求参数缺失",
+				},
+				Comment: service.Comment{},
+			})
+			return
+		}
+		commentId, _ := strconv.Atoi(comment_id)
+		err := service.DelComment(int64(commentId), int64(videoid))
 		if err != nil {
-			c.JSON(http.StatusOK, CommentActionResponse{
-				StatusCode: -1,
-				StatusMsg:  "delete commentId invalid",
+			hlog.Error("删除失败")
+			c.JSON(consts.StatusInternalServerError, CommentRes{
+				Response: Response{
+					StatusCode: -1,
+					StatusMsg:  "删除评论失败",
+				},
+				Comment: service.Comment{},
 			})
-			log.Println("CommentController-Comment_Action: return commentId invalid") //评论id格式错误
 			return
 		}
-		log.Printf("commentId:%v", commentId)
-
-		//删除评论操作
-		err = service.DelComment(commentId)
-		if err != nil { //删除评论失败
-			str := err.Error()
-			c.JSON(http.StatusOK, CommentActionResponse{
-				StatusCode: -1,
-				StatusMsg:  str,
-			})
-			log.Println("CommentController-Comment_Action: return delete comment failed") //删除失败
-			return
-		}
-		//删除评论成功
-		c.JSON(http.StatusOK, CommentActionResponse{
-			StatusCode: 0,
-			StatusMsg:  "delete comment success",
+		c.JSON(consts.StatusOK, CommentRes{
+			Response: Response{
+				StatusCode: 0,
+				StatusMsg:  "success",
+			},
+			Comment: service.Comment{},
 		})
-
-		log.Println("CommentController-Comment_Action: return delete success") //函数执行成功，返回正确信息
-		return
 	}
-
 }
 
 func CommentList(ctx context.Context, c *app.RequestContext) {
-	log.Println("CommentController-Comment_List: running") //函数已运行
-	//获取userId
-	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
-	//错误处理
-	if err != nil {
-		c.JSON(http.StatusOK, CommentListResponse{
-			StatusCode: -1,
-			StatusMsg:  "comment userId json invalid",
+	token := c.Query("token")
+	video_id := c.Query("video_id")
+	if token == "" || video_id == "" {
+		c.JSON(consts.StatusBadRequest, CommentRes{
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  "请求参数缺失",
+			},
+			Comment: service.Comment{},
 		})
-		log.Println("CommentController-Comment_Action: return comment userId json invalid") //userId无效
 		return
 	}
-	log.Printf("userId:%v", userId)
-
-	//获取videoId
-	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
-	//错误处理
-	if err != nil {
-		c.JSON(http.StatusOK, CommentListResponse{
-			StatusCode: -1,
-			StatusMsg:  "comment videoId json invalid",
-		})
-		log.Println("CommentController-Comment_List: return videoId json invalid") //视频id格式有误
-		return
-	}
-	log.Printf("videoId:%v", videoId)
-
-	//调用service层列表获取函数
-	commentList, err := service.GetList(videoId, userId)
-	if err != nil { //获取评论列表失败
-		c.JSON(http.StatusOK, CommentListResponse{
-			StatusCode: -1,
-			StatusMsg:  err.Error(),
-		})
-		log.Println("CommentController-Comment_List: return list false") //查询列表失败
-		return
-	}
-
-	//获取评论列表成功
-	c.JSON(http.StatusOK, CommentListResponse{
-		StatusCode:  0,
-		StatusMsg:   "get comment list success",
-		CommentList: commentList,
+	//===========
+	//解析token
+	//===========
+	videoId, _ := strconv.ParseInt(video_id, 0, 64)
+	cList := service.CommentList(videoId)
+	c.JSON(consts.StatusOK, CommentListRes{
+		Response: Response{
+			StatusCode: 0,
+			StatusMsg:  "success",
+		},
+		CommentList: cList,
 	})
-	log.Println("CommentController-Comment_List: return success") //成功返回列表
-	return
 }

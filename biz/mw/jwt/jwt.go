@@ -3,7 +3,10 @@ package mw
 //@author fuxingyuan
 import (
 	"TikTok/biz/dao"
+	"TikTok/biz/service"
+	"TikTok/conf"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/hertz-contrib/jwt"
@@ -19,7 +22,7 @@ type loginRes struct {
 	StatusCode int32       `json:"status_code"`
 	StatusMsg  string      `json:"status_msg,omitempty"`
 	Token      interface{} `form:"token" json:"token"`
-	User_id    int         `form:"user_id" json:"user_Id"`
+	User_id    int         `form:"user_id" json:"user_id"`
 }
 
 var identityKey = "id"
@@ -71,14 +74,20 @@ func Initjwt() {
 			userID := loginVals.Username
 			password := loginVals.Password
 			user := dao.Use(dao.Db).User
-			validUser, err := user.WithContext(ctx).Select(user.UserID).Where(user.Username.Eq(userID), user.Password.Eq(password)).First()
-			if err == nil && validUser != nil {
-				c.Set("id", validUser.UserID)
-				return &UserDemo{
-					Uid: validUser.UserID,
-				}, nil
+			validUser, err := user.WithContext(ctx).Select(user.UserID, user.Password).Where(user.Username.Eq(userID)).First()
+			if err != nil || validUser == nil {
+				return nil, jwt.ErrFailedAuthentication
 			}
-			return nil, jwt.ErrFailedAuthentication
+			key1 := []byte(conf.Secret)
+			result1 := service.DesCbcEncryption([]byte(password), key1)
+			passwordaes := base64.StdEncoding.EncodeToString(result1)
+			if passwordaes != validUser.Password {
+				return nil, jwt.ErrFailedAuthentication
+			}
+			c.Set("id", validUser.UserID)
+			return &UserDemo{
+				Uid: validUser.UserID,
+			}, nil
 		},
 		Unauthorized: func(ctx context.Context, c *app.RequestContext, code int, message string) {
 			c.JSON(code, loginRes{

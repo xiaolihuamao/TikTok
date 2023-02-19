@@ -35,3 +35,10 @@ func SetFavorCountById(vid int64, favorCount int64) (int64, error) {
 	info, err := v.Select(v.FavoriteCount).Where(v.VideoID.Eq(vid)).Update(v.FavoriteCount, gorm.Expr("favorite_count+?", favorCount))
 	return info.RowsAffected, err
 }
+
+// 根据视频id查询作者
+func FindAthorByVid(vid int64) (int64, error) {
+	v := dao.Use(dao.Db).Video
+	info, err := v.Select(v.AuthorID).Where(v.VideoID.Eq(vid)).First()
+	return info.AuthorID, err
+}

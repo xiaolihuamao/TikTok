@@ -2,7 +2,9 @@ package service
 
 import (
 	"TikTok/biz/model"
+	redisUtil "TikTok/biz/mw/redis"
 	"TikTok/biz/service/mysql"
+	"TikTok/conf"
 	"bytes"
 	"context"
 	"fmt"
@@ -23,7 +25,7 @@ func Publish(uid int64, file *multipart.FileHeader, c *app.RequestContext, title
 	var err error
 	uuid := uuid.NewV1()
 	//拼接url前缀，测试时需要修改这个
-	urlPrefix := "http://192.168.137.1:8081/upload/"
+	urlPrefix := conf.IPAndPort + "/upload/"
 	//拼接url,这个是存进数据库的
 
 	url := fmt.Sprintf("%s%v.mp4", urlPrefix, uuid)
@@ -71,6 +73,10 @@ func Publish(uid int64, file *multipart.FileHeader, c *app.RequestContext, title
 	}
 	fmt.Println(video)
 	err = mysql.InsertVideo(video)
+	if err == nil {
+		userHashKey := fmt.Sprintf("userinfo_hash_%d", uid)
+		redisUtil.Rdb.HIncrBy(userHashKey, "Work_count", 1)
+	}
 	return err
 }
 

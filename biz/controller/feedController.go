@@ -4,6 +4,7 @@ package controller
 import (
 	mw "TikTok/biz/mw/jwt"
 	"TikTok/biz/service"
+	"TikTok/conf"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
@@ -99,12 +100,24 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 // 将service数据复刻到controller封装类  v1-->v2,指针操作
 func copyVideo(v1 *[]service.Video, v2 *[]Video) {
 	for _, temp := range *v1 {
+		var Total_favorited string
+		if temp.Total_favorited == "" {
+			Total_favorited = "0"
+		} else {
+			Total_favorited = temp.Total_favorited
+		}
 		user := User{
-			Id:            temp.UserID,
-			Name:          temp.Username,
-			FollowCount:   temp.FollowCount,
-			FollowerCount: temp.FollowerCount,
-			IsFollow:      temp.Is_follow,
+			Id:               temp.UserID,
+			Name:             temp.Username,
+			FollowCount:      temp.FollowCount,
+			FollowerCount:    temp.FollowerCount,
+			IsFollow:         temp.Is_follow,
+			Avatar:           conf.IPAndPort + "/upload/backgrounds/20230219221523.jpg",
+			Background_image: conf.IPAndPort + "/upload/backgrounds/20230219221607.jpg",
+			Signature:        "曼曼女士的小木屋",
+			Total_favorited:  Total_favorited,
+			Work_count:       temp.Work_count,
+			Favorite_count:   temp.Favorite_count,
 		}
 		var isFavorite bool
 		if temp.IsFavorite != 0 {

@@ -6,7 +6,7 @@
 # 建立模式
 
 # create schema douyin;
-# use douyin;
+ use douyin;
 
 
 drop table if exists  users;

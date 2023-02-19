@@ -4,6 +4,7 @@ package controller
 import (
 	mw "TikTok/biz/mw/jwt"
 	"TikTok/biz/service"
+	"TikTok/conf"
 	"context"
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
@@ -103,12 +104,24 @@ func FavoriteList(ctx context.Context, c *app.RequestContext) {
 
 func copyFavorList(videoInfo []service.Video, videoList *[]Video) {
 	for _, temp := range videoInfo {
+		var Total_favorited string
+		if temp.Total_favorited == "" {
+			Total_favorited = "0"
+		} else {
+			Total_favorited = temp.Total_favorited
+		}
 		author := User{
-			Id:            temp.UserID,
-			Name:          temp.Username,
-			FollowCount:   temp.FollowCount,
-			FollowerCount: temp.FollowerCount,
-			IsFollow:      true,
+			Id:               temp.UserID,
+			Name:             temp.Username,
+			FollowCount:      temp.FollowCount,
+			FollowerCount:    temp.FollowerCount,
+			IsFollow:         temp.Is_follow,
+			Avatar:           conf.IPAndPort + "/upload/backgrounds/20230219221523.jpg",
+			Background_image: conf.IPAndPort + "/upload/backgrounds/20230219221607.jpg",
+			Signature:        "曼曼女士的小木屋",
+			Total_favorited:  Total_favorited,
+			Work_count:       temp.Work_count,
+			Favorite_count:   temp.Favorite_count,
 		}
 		video := Video{
 			Id:            temp.VideoID,

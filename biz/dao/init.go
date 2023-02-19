@@ -62,7 +62,7 @@ func InitDatabase(cfg *viper.Viper) *Database {
 */
 
 // 定义数据库连接对象
-func init() {
+func Init() {
 	DatabaseConfig = GetConfig()
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer

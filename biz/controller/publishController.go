@@ -4,6 +4,7 @@ package controller
 import (
 	mw "TikTok/biz/mw/jwt"
 	"TikTok/biz/service"
+	"TikTok/conf"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
@@ -138,30 +139,6 @@ func PublishList(ctx context.Context, c *app.RequestContext) {
 	token := c.Query("token")
 	userid := c.Query("user_id")
 
-	//title := c.Query("title")
-
-	//var uid interface{} //接收token解析出的uid
-	//token和userid不为空，解析token
-	//if token != "" {
-	//	claims, err := mw.AuthMiddleware.GetClaimsFromJWT(ctx, c) //解析token,取出claims map
-	//	if err != nil {
-	//		hlog.Error("token解析错误，请使用正确的token")
-	//	}
-	//	//取出登录后返回的token中保存的uid---(interface{}/float64)
-	//	uid = claims["id"]
-	//	//若取不出uid,说明token错误或过期，给uid赋值float64(-1)
-	//	if uid == nil {
-	//		uid = float64(-1)
-	//		hlog.Error("token解析错误，请使用正确的token")
-	//	}
-	//	//token为空，给uid赋值float(-1)
-	//} else {
-	//	uid = float64(-1)
-	//	hlog.Info("未登录用户")
-	//}
-	//uidf := uid.(float64)
-	//uidInt := int64(uidf) //uid interface{}/float64--->int64 方便传参
-
 	if token == "" || userid == "" {
 		c.JSON(consts.StatusNotFound, PublishController{
 			Response: Response{
@@ -171,13 +148,6 @@ func PublishList(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	//	err := service.PublishList(uidInt, user_id, title)
-	//	if err != nil {
-	//		hlog.Error("响应错误")
-	//	}
-	//	return
-	//}
-	//	user := service.GetUserInfo(uidInt)
 	userId, err := strconv.ParseInt(userid, 10, 64)
 	if err != nil {
 		hlog.Error("userid不合法")
@@ -196,11 +166,6 @@ func PublishList(ctx context.Context, c *app.RequestContext) {
 		copyPublishList(videoInfo, &videoList)
 	}
 
-	//_, err = service.GetSnapshot("./test.mp4", "test", 1)
-	//if err != nil {
-	//	return
-	//}
-
 	c.JSON(consts.StatusOK, PublishController{
 		Response: Response{
 			StatusCode: 0,
@@ -212,12 +177,24 @@ func PublishList(ctx context.Context, c *app.RequestContext) {
 
 // 将service的数据封装到controller层
 func copyPublishList(videoInfo []service.Video, videoList *[]Video) {
+	var Total_favorited string
+	if videoInfo[0].Total_favorited == "" {
+		Total_favorited = "0"
+	} else {
+		Total_favorited = videoInfo[0].Total_favorited
+	}
 	author := User{
-		Id:            videoInfo[0].UserID,
-		Name:          videoInfo[0].Username,
-		FollowCount:   videoInfo[0].FollowCount,
-		FollowerCount: videoInfo[0].FollowerCount,
-		IsFollow:      true,
+		Id:               videoInfo[0].UserID,
+		Name:             videoInfo[0].Username,
+		FollowCount:      videoInfo[0].FollowCount,
+		FollowerCount:    videoInfo[0].FollowerCount,
+		IsFollow:         true,
+		Avatar:           conf.IPAndPort + "/upload/backgrounds/20230219221523.jpg",
+		Background_image: conf.IPAndPort + "/upload/backgrounds/20230219221607.jpg",
+		Signature:        "曼曼女士的小木屋",
+		Total_favorited:  Total_favorited,
+		Work_count:       videoInfo[0].Work_count,
+		Favorite_count:   videoInfo[0].Favorite_count,
 	}
 
 	for _, temp := range videoInfo {

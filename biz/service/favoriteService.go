@@ -12,6 +12,8 @@ import (
 func AddLike(uid int64, vid int64, ctx context.Context) error {
 	vidStr := strconv.Itoa(int(vid))
 	uidStr := strconv.Itoa(int(uid))
+	authorId, _ := mysql.FindAthorByVid(vid)
+	authorIdStr := strconv.Itoa(int(authorId))
 	pipe := redisUtil.Rdb.Pipeline()
 	//将所有被点赞的videoid存入一个set集合
 	pipe.SAdd("isLiked_video_set", vid)
@@ -23,6 +25,10 @@ func AddLike(uid int64, vid int64, ctx context.Context) error {
 	pipe.Incr("videoLike_count_" + vidStr)
 	//set 集合，用vid和uid复合作为key,value 1 表示已经点赞，取消可以设为0
 	pipe.Set("like"+vidStr+"::"+uidStr, 1, 0)
+	//给userhash的点赞数+1,针对作者
+	pipe.HIncrBy("userinfo_hash_"+authorIdStr, "Total_favorited", 1)
+	//给userhash的喜欢数+1，这个针对的是当前用户
+	pipe.HIncrBy("userinfo_hash_"+uidStr, "Favorite_count", 1)
 	_, err := pipe.Exec()
 	return err
 }
@@ -31,6 +37,8 @@ func AddLike(uid int64, vid int64, ctx context.Context) error {
 func CancelLike(uid int64, vid int64, ctx context.Context) error {
 	vidStr := strconv.Itoa(int(vid))
 	uidStr := strconv.Itoa(int(uid))
+	authorId, _ := mysql.FindAthorByVid(vid)
+	authorIdStr := strconv.Itoa(int(authorId))
 	pipe := redisUtil.Rdb.Pipeline()
 	//将所有被取消点赞的videoid存入一个set集合，与点赞同理，这个集合更准确是发生过赞关系的都要收集
 	pipe.SAdd("isLiked_video_set", vid)
@@ -40,6 +48,9 @@ func CancelLike(uid int64, vid int64, ctx context.Context) error {
 	pipe.SAdd("userlike_videos_"+uidStr, vid)
 	pipe.Decr("videoLike_count_" + vidStr)
 	pipe.Set("like"+vidStr+"::"+uidStr, 0, 0)
+	pipe.HIncrBy("userinfo_hash_"+authorIdStr, "Total_favorited", -1)
+	//给userhash的喜欢数-1，这个针对的是当前用户
+	pipe.HIncrBy("userinfo_hash_"+uidStr, "Favorite_count", -1)
 	_, err := pipe.Exec()
 	return err
 }

@@ -1,5 +1,6 @@
 package service
 
+//@author:zhangshuo
 import (
 	"TikTok/biz/dao"
 	"TikTok/biz/model"
@@ -37,6 +38,6 @@ func CommentList(videoId int64) []Comment {
 	c := dao.Use(dao.Db).Comment
 	u := dao.Use(dao.Db).User
 	var cList []Comment
-	c.Select(c.VideoID, c.Content, c.UserID, c.CommentID, c.CreateDate, u.Username, u.FollowerCount, u.FollowCount).LeftJoin(u, u.UserID.EqCol(c.UserID)).Where(c.VideoID.Eq(videoId)).Scan(&cList)
+	c.Select(c.VideoID, c.Content, c.UserID, c.CommentID, c.CreateDate, u.Username, u.FollowerCount, u.FollowCount).LeftJoin(u, u.UserID.EqCol(c.UserID)).Where(c.VideoID.Eq(videoId)).Order(c.CommentID).Scan(&cList)
 	return cList
 }

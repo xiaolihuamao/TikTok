@@ -62,13 +62,13 @@ func InitDatabase(cfg *viper.Viper) *Database {
 */
 
 // 定义数据库连接对象
-func init() {
+func Init() {
 	DatabaseConfig = GetConfig()
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
 			SlowThreshold: 2 * time.Second, // 慢 SQL 阈值
-			LogLevel:      logger.Error,    // Log level
+			LogLevel:      logger.Info,     // Log level
 			Colorful:      true,            // 彩色打印
 		},
 	)

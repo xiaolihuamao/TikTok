@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/xiaolihuamao/TikTok.git/">
-    <img src="images/logo2.png" alt="Logo" width="400" height="100">
+    <img src="images/logo1.png" alt="Logo" width="400" height="100">
   </a>
 
 <h3 align="center">抖音简洁版</h3>

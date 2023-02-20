@@ -1,3 +1,11 @@
-# TikTok
-北斗七星队极简版抖音项目
-项目简单介绍：
+<!-- PROJECT SHIELDS -->
+
+![GitHub Repo stars](https://img.shields.io/github/stars/xiaolihuamao/TikTok?style=plastic)
+![GitHub watchers](https://img.shields.io/github/watchers/xiaolihuamao/TikTok?style=plastic)
+![GitHub forks](https://img.shields.io/github/forks/xiaolihuamao/TikTok?style=plastic)
+![GitHub contributors](https://img.shields.io/github/contributors/xiaolihuamao/TikTok)
+[![Apache License 2.0][license-shield]][license-url]
+
+
+<!-- PROJECT LOGO -->
+<br />

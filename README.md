@@ -103,25 +103,24 @@ git clone https://github.com/xiaolihuamao/TikTok.git
 
 ```
 ├─biz
-│  ├─controller
-│  ├─dao
-│  ├─model
-│  ├─mw
-│  │  ├─jwt
-│  │  └─redis
-│  ├─router
-│  ├─service
-│  │  ├─conf
-│  │  ├─mysql
-│  │  └─timeTaskService
-│  │          favoriteTimeTask.go
-│  ├─sql
-│  └─utils
-├─conf
-├─file
+│  ├─controller //controller层
+│  ├─dao        //持久化层
+│  ├─model      //持久化实体类层
+│  ├─mw         //中间件层
+│  │  ├─jwt     //jwt验证层
+│  │  └─redis   //redis初始化层
+│  ├─router     //自动生成路由
+│  ├─service    //service层
+│  │  ├─conf     //配置文件
+│  │  ├─mysql    //再封装SQL函数
+│  │  └─timeTaskService  //定时任务层
+│  ├─sql          //建表语句
+│  └─utils        //工具类层
+├─conf           //配置文件
+├─file           //静态文件资源
 │  └─upload
 │      └─backgrounds
-└─images
+└─images        //图片引用
 
 ```
 

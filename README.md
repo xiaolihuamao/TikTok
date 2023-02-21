@@ -16,7 +16,7 @@
 <h3 align="center">抖音简洁版</h3>
   <p align="center">
     <br />
-    <a href="https://github.com/HammerCloth/tiktok.git"><strong>探索本项目的文档 »</strong></a>
+    <a href="https://github.com/xiaolihuamao/TikTok.git"><strong>探索本项目的文档 »</strong></a>
     <br />
     <br />
   </p>

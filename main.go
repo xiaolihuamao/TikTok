@@ -8,6 +8,7 @@ import (
 	"TikTok/biz/dao"
 	mw "TikTok/biz/mw/jwt"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/hertz-contrib/pprof"
 )
 
 func main() {
@@ -16,5 +17,6 @@ func main() {
 	mw.Initjwt()
 	register(h)
 	controller.TimeTaskExec()
+	pprof.Register(h)
 	h.Spin()
 }

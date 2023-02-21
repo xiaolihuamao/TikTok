@@ -68,10 +68,12 @@ func FavoriteAction(ctx context.Context, c *app.RequestContext) {
 		})
 		return
 	}
+
 	c.JSON(consts.StatusOK, Response{
 		StatusCode: 0,
 		StatusMsg:  "success",
 	})
+
 }
 
 func FavoriteList(ctx context.Context, c *app.RequestContext) {

@@ -127,14 +127,14 @@ git clone https://github.com/xiaolihuamao/TikTok.git
 ### 开发的整体设计
 #### 整体的架构图
 <p align="center">
-  <a href="https://github.com/HammerCloth/tiktok.git/">
-    <img src="images/framework.jpg" alt="Logo" width="1000" height="500">
+  <a href="https://github.com/xiaolihuamao/TikTok.git/">
+    <img src="images/Tiktok.jpg" alt="Logo" width="1000" height="500">
   </a>
 
 #### 数据库的设计
 <p align="center">
-  <a href="https://github.com/HammerCloth/tiktok.git/">
-    <img src="images/mysql.jpg" alt="Logo" width="800" height="600">
+  <a href="https://github.com/xiaolihuamao/TikTok.git/">
+    <img src="images/mysql.png" alt="Logo" width="800" height="600">
   </a>
 </p>
 

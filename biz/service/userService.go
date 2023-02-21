@@ -20,7 +20,6 @@ func GetuserInfo(ctx context.Context, c *app.RequestContext, id int64) ([]model.
 	var userList []model.User
 
 	dao.Db.Table("users").Select("user_id", "username", "follow_count", "follower_count").Distinct().Where("user_id = ?", id).Scan(&userList)
-
 	return userList, nil
 }
 func Registeruser(ctx context.Context, c *app.RequestContext, username string, password string) (userid int64, err error) {

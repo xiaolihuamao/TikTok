@@ -54,7 +54,8 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 		hlog.Info("未登录用户")
 	}
 	uidf := uid.(float64)
-	uidInt := int64(uidf)                 //uid interface{}/float64--->int64 方便传参
+	uidInt := int64(uidf)
+	//uid interface{}/float64--->int64 方便传参
 	latest_time := c.Query("latest_time") //取出时间戳
 	var lastTime time.Time                //定义Time类型的lastTime
 	//对时间戳判空，若为空，取当前时间，不为空，将取出的时间戳转time类型

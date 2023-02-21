@@ -130,7 +130,6 @@ func Publish(ctx context.Context, c *app.RequestContext) {
 		StatusCode: 0,
 		StatusMsg:  "success",
 	})
-
 }
 
 // /douyin/publish/list/
@@ -138,16 +137,14 @@ func PublishList(ctx context.Context, c *app.RequestContext) {
 
 	token := c.Query("token")
 	userid := c.Query("user_id")
-
 	if token == "" || userid == "" {
 		c.JSON(consts.StatusNotFound, PublishController{
 			Response: Response{
 				StatusCode: -1,
-				StatusMsg:  "(token ——> null) or (user_id ——> null)"},
+				StatusMsg:  "(token ——> null) "},
 		})
 		return
 	}
-
 	userId, err := strconv.ParseInt(userid, 10, 64)
 	if err != nil {
 		hlog.Error("userid不合法")

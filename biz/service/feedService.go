@@ -54,7 +54,7 @@ func Feed(ctx context.Context, c *app.RequestContext, latest_time time.Time, id 
 		hlog.Error("查询视频数据错误")
 	}
 	//登录用户执行此步操作，判断是否isFavorite
-	if id >= 0 {
+	if id > 0 {
 		createVideo(id, &videoList, ctx)
 	}
 	return videoList, err
@@ -108,7 +108,7 @@ func createVideo(id int64, videoList *[]Video, ctx context.Context) {
 	//重新装填user数据
 	var addExtraUserInfo func(useId int64, videoList *[]Video, ctx context.Context)
 	addExtraUserInfo = func(useId int64, videoList *[]Video, ctx context.Context) {
-		pipe := redisUtil.Rdb.Pipeline()
+		pipe := redisUtil.Rdb
 		for i, video := range *videoList {
 			userHashKey := fmt.Sprintf("userinfo_hash_%d", video.AuthorID)
 			if pipe.Exists(userHashKey).Val() == 0 {
@@ -120,7 +120,6 @@ func createVideo(id int64, videoList *[]Video, ctx context.Context) {
 			Favorite_count, _ := pipe.HGet(userHashKey, "Favorite_count").Int64()
 			(*videoList)[i].Favorite_count = Favorite_count
 		}
-		pipe.Exec()
 		wg.Done()
 	}
 	go addExtraUserInfo(id, videoList, ctx)

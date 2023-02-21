@@ -237,14 +237,9 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build ./
 
 ### 版权说明
 
-该项目签署了Apache Licen 授权许可，详情请参阅 [LICENSE.txt](https://github.com/shaojintian/Best_README_template/blob/master/LICENSE.txt)
+该项目签署了Apache License2.0 授权许可,详情可参阅License文件
 
 ### 鸣谢
 
 - [字节跳动后端青训营](https://youthcamp.bytedance.com/)
 
-<!-- links -->
-
-[license-shield]: https://img.shields.io/github/license/mrxuexi/tiktok.svg?style=flat-square
-
-[license-url]: https://github.com/mrxuexi/tiktok/blob/master/LICENSE.txt

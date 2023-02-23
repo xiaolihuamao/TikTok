@@ -13,7 +13,7 @@
     <img src="images/logo1.png" alt="Logo" width="400" height="100">
   </a>
 
-<h3 align="center">抖音简洁版</h3>
+<h3 align="center">小七星TikTok</h3>
   <p align="center">
     <br />
     <a href="https://github.com/xiaolihuamao/TikTok.git"><strong>探索本项目的文档 »</strong></a>
@@ -35,7 +35,6 @@
     - [开发前的配置要求](#开发前的配置要求)
     - [安装步骤](#安装步骤)
     - [演示界面](#演示界面)
-    - [演示视频](#演示视频)
 - [文件目录说明](#文件目录说明)
 - [开发的整体设计](#开发的整体设计)
    - [整体的架构图](#整体的架构图)
@@ -71,9 +70,36 @@
 
 #### 安装步骤
 1. 下载源码
-2. 配置SSH、Redis、静态服务器地址等相关参数
+2. 配置ffmpeg、Redis、MySQL等相关参数
 3. 启动服务
 4. 在客户端配置相关地址服务端地址即可
+5. 具体参数修改：
+##### 具体细节参数修改
+1. 修改conf/conf.go文件中的’const IPAndPort = "http://192.168.137.1:8081"‘，这里的url前缀要修改到自己电脑本地ip，如果部署到服务器，需要修改对应服务器的ip.
+
+2. 修改conf/setting文件中的datasource配置，配置为自己需要的数据库，同时使用sql包里的建表语句生成对应数据库表
+
+3. 下载ffmpeg windows版，配置环境变量。
+
+4. 配置redis,可使用docker部署或者服务器部署，要求对外开放本地端口即可。注意本项目配置密码为root，可在biz/mw/redis/redis.go文件中进行配置
+
+5. ```go
+
+   func init() {
+   
+    Rdb = redis.NewClient(&redis.Options{
+   
+     Addr:   "localhost:6379",
+   
+     Password: "root", //  password set
+   
+     DB:    0,    // use default DB
+   
+    })
+   }
+   ```
+
+
 
 ```sh
 git clone https://github.com/xiaolihuamao/TikTok.git
@@ -96,8 +122,7 @@ git clone https://github.com/xiaolihuamao/TikTok.git
 </a>
 
 
-#### 演示视频
-[![Watch the video](images/video.png)](http://43.138.25.60/tiktok.mp4)
+
 
 ### 文件目录说明
 
@@ -128,7 +153,7 @@ git clone https://github.com/xiaolihuamao/TikTok.git
 #### 整体的架构图
 <p align="center">
   <a href="https://github.com/xiaolihuamao/TikTok.git/">
-    <img src="images/Tiktok.jpg" alt="Logo" width="1000" height="500">
+    <img src="images/架构.png" alt="Logo" width="1000" height="500">
   </a>
 
 #### 数据库的设计
@@ -152,12 +177,11 @@ git clone https://github.com/xiaolihuamao/TikTok.git
 
 
 ### 性能测试
-通过命令 go tool pprof -http=:6060 "http://localhost:8080/debug/pprof/profile?seconds=120" 生成了两个版本的火焰图，左图为v1.0，右图为v1.2版本，通过对比两张详细火焰图，优化后的相同方法调用时间更短（添加了相应的中间件）
+通过命令 go tool pprof -http=:8080 "http://localhost:8081/debug/pprof/profile?seconds=120" 生成了两个版本的火焰图，左图为v1.0，右图为v1.2版本，通过对比两张详细火焰图，优化后的相同方法调用时间更短（添加了相应的中间件）
 
 <p align="center">
-<a href="https://github.com/HammerCloth/tiktok.git/">
-    <img src="images/1.0.png" alt="Logo" width="500" height="300">
-    <img src="images/1.2.png" alt="Logo" width="500" height="300">
+<a href="https://github.com/xiaolihuamao/TikTok/">
+    <img src="images/火焰图.png" alt="Logo" width="500" height="300">
 </a>
 
 
@@ -168,6 +192,7 @@ git clone https://github.com/xiaolihuamao/TikTok.git
 - [Gorm](https://gorm.io/docs/)
 - [Gen](https://github.com/go-gorm/gen)
   
+
 服务器相关：
 - [ffmpeg](https://ffmpeg.org/documentation.html)
 中间件相关：
@@ -176,7 +201,7 @@ git clone https://github.com/xiaolihuamao/TikTok.git
 - [MySQL](https://dev.mysql.com/doc/)
 
 ### 未来展望
-  
+
 #### 消息队列展望
 使用常见的业务消息队列RocketMQ,对于项目中的某些方法调用通过注册消息，消费消息的方法，实现高并发场景下的解耦和削峰
 #### 分布式服务

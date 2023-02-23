@@ -47,9 +47,6 @@ func Publish(uid int64, file *multipart.FileHeader, c *app.RequestContext, title
 	vpath := path + fmt.Sprintf("%v.mp4", uuid)
 	//拼接封面保存路径
 	ppath := fmt.Sprintf("%s%v.jpg", path, uuid)
-	fmt.Println(vpath)
-	fmt.Println("hsicdnisjocwj")
-	fmt.Println(ppath)
 	//执行ffmpeg命令，vpath表示取到视频的绝对路径，ppath表示保存图片的路径前缀
 	//cmd := exec.CommandContext(ctx, "cmd", "/C", "ffmeg -ss 00:00:01 -i "+vpath+" -frames:v 1 "+ppath)
 	cmd := exec.CommandContext(ctx, "cmd", "/C", "ffmpeg -ss 00:00:01 -i "+vpath+" -frames:v 1 "+ppath)

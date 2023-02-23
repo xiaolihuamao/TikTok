@@ -23,7 +23,6 @@ func GetuserInfo(ctx context.Context, c *app.RequestContext, id int64) ([]model.
 	return userList, nil
 }
 func Registeruser(ctx context.Context, c *app.RequestContext, username string, password string) (userid int64, err error) {
-	//读写锁
 
 	usernames := make([]string, 0)
 	dao.Db.Table("users").Select("username").Distinct().Scan(&usernames) //Scan与Find

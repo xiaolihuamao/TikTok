@@ -23,15 +23,15 @@ func GetuserInfo(ctx context.Context, c *app.RequestContext, id int64) ([]model.
 	return userList, nil
 }
 
-// 将新注册的用户
+// 将新注册的用户,插入到数据库中
 func Registeruser(ctx context.Context, c *app.RequestContext, username string, password string) (userid int64, err error) {
 
 	usernames := make([]string, 0)
 	dao.Db.Table("users").Select("username").Distinct().Scan(&usernames) //Scan与Find
-	if IsInSlice(username, usernames) {
+	if IsInSlice(username, usernames) {                                  //如果有的话那么则返回用户名已经存在
 		return 0, errors.New("用户名已经存在")
 	}
-	key1 := []byte(conf.Secret)
+	key1 := []byte(conf.Secret) //密钥进行匹配
 	result1 := DesCbcEncryption([]byte(password), key1)
 	fmt.Println(result1)
 	passwordaes := base64.StdEncoding.EncodeToString(result1)
@@ -39,6 +39,7 @@ func Registeruser(ctx context.Context, c *app.RequestContext, username string, p
 	//reward1 := desCbcDecryption(result1, key1)
 	//fmt.Printf("%s\n", reward1)
 	user := model.User{Username: username, Password: passwordaes, FollowCount: 0, FollowerCount: 0}
+	//用户的列表，，用户名，密码，关注列表，被关注列表
 	/*dao.Db.Create(&user)
 	userid, err = user.UserID, result.Error // 返回插入记录的条数// 返回 error
 	return userid, err*/

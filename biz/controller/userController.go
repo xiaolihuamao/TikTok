@@ -15,21 +15,24 @@ import (
 	"strconv"
 )
 
+// 用户响应
 type UserResponse struct {
 	Response
 	User User `json:"user"`
 }
 
+// 注册用户响应
 type RegisterResponse struct {
 	Response
 	user_id int64  `json:"user_id"`
 	token   string `json:"token"`
 }
 
+// 注册用户
 func Register(ctx context.Context, c *app.RequestContext) {
 	username := c.Query("username")
 	password := c.Query("password")
-	if username == "" || password == "" {
+	if username == "" || password == "" { //检测一下用户名和密码是否为空
 		hlog.Info("username或者password不能为空")
 		c.JSON(consts.StatusInternalServerError, RegisterResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "用户名或者密码为空"},
@@ -39,6 +42,7 @@ func Register(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	_, err := service.Registeruser(ctx, c, username, password)
+	//检测用户是否用户名重复
 	if err != nil {
 		hlog.Info("用户名重复或数据插入错误")
 		c.JSON(consts.StatusInternalServerError, RegisterResponse{
@@ -51,6 +55,7 @@ func Register(ctx context.Context, c *app.RequestContext) {
 	mw.AuthMiddleware.LoginHandler(ctx, c)
 }
 
+// 用户信息查询
 func UserInfo(ctx context.Context, c *app.RequestContext) {
 	id := c.GetInt64("user_id")
 	if id == 0 {
@@ -59,12 +64,12 @@ func UserInfo(ctx context.Context, c *app.RequestContext) {
 	}
 
 	//获取token
-	token := c.Query("token")
+	token := c.Query("token") //获取token
 	if token == "" {
 		token = c.GetString("token")
 	}
 	if token == "" {
-		hlog.Info("token 为空")
+		hlog.Info("token 为空") //控制台进行响应
 		c.JSON(consts.StatusInternalServerError, UserResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "用户未登录"},
 			User:     User{},
@@ -82,6 +87,8 @@ func UserInfo(ctx context.Context, c *app.RequestContext) {
 	}
 
 }
+
+// 复制用户数据
 func copyUser(r1 *[]model.User, r2 *[]User) {
 	for _, temp := range *r1 {
 		followuser := User{
@@ -102,6 +109,7 @@ func copyUser(r1 *[]model.User, r2 *[]User) {
 	}
 }
 
+// 创建用户
 func createUser(u *User, id int64) {
 	pipe := redisUtil.Rdb
 	userHashKey := fmt.Sprintf("userinfo_hash_%d", id)

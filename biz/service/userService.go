@@ -22,6 +22,8 @@ func GetuserInfo(ctx context.Context, c *app.RequestContext, id int64) ([]model.
 	dao.Db.Table("users").Select("user_id", "username", "follow_count", "follower_count").Distinct().Where("user_id = ?", id).Scan(&userList)
 	return userList, nil
 }
+
+// 将新注册的用户
 func Registeruser(ctx context.Context, c *app.RequestContext, username string, password string) (userid int64, err error) {
 
 	usernames := make([]string, 0)
@@ -117,11 +119,3 @@ func desCbcDecryption(cipherText, key []byte) []byte {
 func Sbyte2str(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
-
-//func main() {
-//	key1 := []byte("1234abcd")
-//	result1 := desCbcEncryption([]byte("helloworld今天天气好晴朗处处好风光"), key1)
-//	fmt.Printf("%s\n", result1)
-//	reward1 := desCbcDecryption(result1, key1)
-//	fmt.Printf("%s\n", reward1)
-//}

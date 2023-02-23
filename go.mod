@@ -8,6 +8,7 @@ require (
 	github.com/go-co-op/gocron v1.18.0
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/hertz-contrib/jwt v1.0.2
+	github.com/hertz-contrib/pprof v0.1.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/viper v1.15.0
 	github.com/u2takey/ffmpeg-go v0.4.1
@@ -31,7 +32,6 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/henrylee2cn/ameda v1.4.10 // indirect
 	github.com/henrylee2cn/goutil v0.0.0-20210127050712-89660552f6f8 // indirect
-	github.com/hertz-contrib/pprof v0.1.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect

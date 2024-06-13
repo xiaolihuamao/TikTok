@@ -1,46 +1,90 @@
 package rocketmq
 
 import (
+	"context"
 	"fmt"
-	"log"
+	"os"
+
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/admin"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
-
 )
 
-
-
-type RabbitMQ struct {
-	conn  *.Connection
-	mqurl string
-}
-
-var Rmq *RabbitMQ
-
-// InitRabbitMQ 初始化RabbitMQ的连接和通道。
-func InitRabbitMQ() {
-
-	Rmq = &RabbitMQ{
-		mqurl: MQURL,
-	}
-	dial, err := amqp.Dial(Rmq.mqurl)
-	Rmq.failOnErr(err, "创建连接失败")
-	Rmq.conn = dial
-
-}
-
-// 连接出错时，输出错误信息。
-func (r *RabbitMQ) failOnErr(err error, message string) {
+func CreateTopic(topicName string) {
+	endPoint := []string{"192.168.120.78:9876"}
+	// 创建主题
+	testAdmin, err := admin.NewAdmin(admin.WithResolver(primitive.NewPassthroughResolver(endPoint)))
 	if err != nil {
-		log.Fatalf("%s:%s\n", err, message)
-		panic(fmt.Sprintf("%s:%s\n", err, message))
+		fmt.Printf("connection error: %s\n", err.Error())
+	}
+	err = testAdmin.CreateTopic(context.Background(), admin.WithTopicCreate(topicName))
+	if err != nil {
+		fmt.Printf("createTopic error: %s\n", err.Error())
 	}
 }
 
-// 关闭mq通道和mq的连接。
-func (r *RabbitMQ) destroy() {
-	r.conn.Close()
+func SendSyncMessage(message string) {
+	// 发送消息
+	endPoint := []string{"192.168.120.78:9876"}
+	// 创建一个producer实例
+	p, _ := rocketmq.NewProducer(
+		producer.WithNameServer(endPoint),
+		producer.WithRetry(2),
+		producer.WithGroupName("ProducerGroupName"),
+	)
+	// 启动
+	err := p.Start()
+	if err != nil {
+		fmt.Printf("start producer error: %s", err.Error())
+		os.Exit(1)
+	}
+
+	// 发送消息
+	result, err := p.SendSync(context.Background(), &primitive.Message{
+		Topic: "testTopic01",
+		Body:  []byte(message),
+	})
+
+	if err != nil {
+		fmt.Printf("send message error: %s\n", err.Error())
+	} else {
+		fmt.Printf("send message seccess: result=%s\n", result.String())
+	}
+}
+
+func SubcribeMessage() {
+	// 订阅主题、消费
+	endPoint := []string{"192.168.120.78:9876"}
+	// 创建一个consumer实例
+	c, err := rocketmq.NewPushConsumer(consumer.WithNameServer(endPoint),
+		consumer.WithConsumerModel(consumer.Clustering),
+		consumer.WithGroupName("ConsumerGroupName"),
+	)
+
+	// 订阅topic
+	err = c.Subscribe("testTopic01", consumer.MessageSelector{}, func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
+		for i := range msgs {
+			fmt.Printf("subscribe callback : %v \n", msgs[i])
+		}
+		return consumer.ConsumeSuccess, nil
+	})
+
+	if err != nil {
+		fmt.Printf("subscribe message error: %s\n", err.Error())
+	}
+
+	// 启动consumer
+	err = c.Start()
+
+	if err != nil {
+		fmt.Printf("consumer start error: %s\n", err.Error())
+		os.Exit(-1)
+	}
+
+	err = c.Shutdown()
+	if err != nil {
+		fmt.Printf("shutdown Consumer error: %s\n", err.Error())
+	}
 }
